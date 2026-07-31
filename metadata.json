@@ -1,0 +1,6 @@
+{
+  "name": "호롱잡화점",
+  "description": "한복 업사이클링 전문 기업 '호롱잡화점'의 공식 홈페이지 프로토타입 및 시스템 아키텍처/기획안",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

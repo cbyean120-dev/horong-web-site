@@ -1,0 +1,34 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-stone-950: #12120b;
+  --color-stone-900: #1c1c14;
+  --color-stone-850: #29291d;
+  --color-stone-800: #2b2b2b; /* Dark neutral for text */
+  --color-stone-700: #4a4a35;
+  --color-stone-600: #5d5d45;
+  --color-stone-500: #717158;
+  --color-stone-400: #898970;
+  --color-stone-300: #aaaa90;
+  --color-stone-200: #e5e5d1; 
+  --color-stone-100: #f5f2ed; 
+  --color-stone-50: #faf9f5;  
+
+  --color-amber-50: #daddd8;  /* Page background: very light cool grey like reference */
+
+  --font-sans: "Plus Jakarta Sans", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-serif: "Playfair Display", "Nanum Myeongjo", "Pretendard", -apple-system, BlinkMacSystemFont, serif;
+  --font-mono: "Plus Jakarta Sans", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-logo: "Playfair Display", "Nanum Myeongjo", Georgia, serif;
+}
+
+@layer base {
+  html, body {
+    background-color: var(--color-amber-50);
+    color: var(--color-stone-800);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+  }
+}
