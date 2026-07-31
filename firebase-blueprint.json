@@ -1,0 +1,84 @@
+{
+  "collections": {
+    "products": {
+      "description": "Products available for purchase",
+      "fields": {
+        "id": "string",
+        "name": "map",
+        "category": "string",
+        "basePrice": "number",
+        "stock": "number",
+        "description": "map",
+        "image": "string",
+        "isSoldOut": "boolean",
+        "createdAt": "timestamp"
+      },
+      "security": {
+        "read": "true",
+        "write": "request.auth != null && request.auth.token.email == 'horongkor1110'"
+      }
+    },
+    "classes": {
+      "description": "Classes available for booking",
+      "fields": {
+        "id": "string",
+        "title": "map",
+        "description": "map",
+        "type": "string",
+        "image": "string",
+        "createdAt": "timestamp"
+      },
+      "security": {
+        "read": "true",
+        "write": "request.auth != null && request.auth.token.email == 'horongkor1110'"
+      }
+    },
+    "reservations": {
+      "description": "Class reservations",
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "date": "string",
+        "time": "string",
+        "userName": "string",
+        "userPhone": "string",
+        "seats": "number",
+        "status": "string",
+        "createdAt": "timestamp",
+        "userId": "string"
+      },
+      "security": {
+        "read": "request.auth != null && (request.auth.token.email == 'horongkor1110' || request.auth.uid == resource.data.userId)",
+        "write": "request.auth != null && (request.auth.token.email == 'horongkor1110' || request.auth.uid == request.resource.data.userId)"
+      }
+    },
+    "orders": {
+      "description": "Product orders",
+      "fields": {
+        "id": "string",
+        "items": "array",
+        "totalAmount": "number",
+        "userName": "string",
+        "userPhone": "string",
+        "address": "string",
+        "status": "string",
+        "createdAt": "timestamp",
+        "userId": "string"
+      },
+      "security": {
+        "read": "request.auth != null && (request.auth.token.email == 'horongkor1110' || request.auth.uid == resource.data.userId)",
+        "write": "request.auth != null && (request.auth.token.email == 'horongkor1110' || request.auth.uid == request.resource.data.userId)"
+      }
+    },
+    "settings": {
+      "description": "Global application settings",
+      "fields": {
+        "value": "string"
+      },
+      "security": {
+        "read": "true",
+        "write": "request.auth != null && request.auth.token.email == 'horongkor1110'"
+      }
+    }
+  }
+}

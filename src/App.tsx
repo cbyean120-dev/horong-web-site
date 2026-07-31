@@ -11,6 +11,16 @@ import {
   INITIAL_ORDERS 
 } from "./types";
 import { Language, i18nDictionary } from "./data/i18n";
+import { onSnapshot, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { db } from './lib/firebase';
+import { 
+  productsCollection, 
+  classesCollection, 
+  reservationsCollection, 
+  ordersCollection, 
+  settingsCollection,
+  initializeDefaults
+} from "./lib/db";
 
 import GNBHeader from "./components/GNBHeader";
 import ProductBespoke from "./components/ProductBespoke";
@@ -65,63 +75,17 @@ export default function App() {
     }
   });
 
-  // 4. Products Data (with Back-office additions)
-  const [products, setProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem("horong_products");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      }
-      return INITIAL_PRODUCTS;
-    } catch {
-      return INITIAL_PRODUCTS;
-    }
-  });
+  // 4. Products Data
+  const [products, setProducts] = useState<Product[]>([]);
 
   // 5. Classes Data
-  const [classes, setClasses] = useState<CraftClass[]>(() => {
-    try {
-      const saved = localStorage.getItem("horong_classes");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-      return INITIAL_CLASSES;
-    } catch {
-      return INITIAL_CLASSES;
-    }
-  });
+  const [classes, setClasses] = useState<CraftClass[]>([]);
 
-  // 6. Reservations (Back-office interactive updates)
-  const [reservations, setReservations] = useState<Reservation[]>(() => {
-    try {
-      const saved = localStorage.getItem("horong_reservations_v2");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-      return INITIAL_RESERVATIONS;
-    } catch {
-      return INITIAL_RESERVATIONS;
-    }
-  });
+  // 6. Reservations
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
-  // 7. Orders (Bespoke 이커머스 결제 내역)
-  const [orders, setOrders] = useState<Order[]>(() => {
-    try {
-      const saved = localStorage.getItem("horong_orders_v2");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-      return INITIAL_ORDERS;
-    } catch {
-      return INITIAL_ORDERS;
-    }
-  });
+  // 7. Orders
+  const [orders, setOrders] = useState<Order[]>([]);
 
   // 8. Selected Bag (Cart)
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -151,13 +115,14 @@ export default function App() {
   const [showcaseQty, setShowcaseQty] = useState(1);
 
   // Monthly items section title
-  const [monthlyItemsTitle, setMonthlyItemsTitle] = useState(() => {
-    return localStorage.getItem("horong_monthly_title") || "MONTHLY ITEMS";
-  });
+  const [monthlyItemsTitle, setMonthlyItemsTitle] = useState("MONTHLY ITEMS");
 
-  const handleUpdateMonthlyTitle = (title: string) => {
-    setMonthlyItemsTitle(title);
-    localStorage.setItem("horong_monthly_title", title);
+  const handleUpdateMonthlyTitle = async (title: string) => {
+    try {
+      await setDoc(doc(settingsCollection, "monthlyTitle"), { value: title });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   // Synchronizers to localStorage for high-fidelity persistence
@@ -176,24 +141,52 @@ export default function App() {
   }, [user]);
 
   useEffect(() => {
-    try { localStorage.setItem("horong_products", JSON.stringify(products)); } catch (e) {}
-  }, [products]);
-
-  useEffect(() => {
-    try { localStorage.setItem("horong_reservations_v2", JSON.stringify(reservations)); } catch (e) {}
-  }, [reservations]);
-
-  useEffect(() => {
-    try { localStorage.setItem("horong_orders_v2", JSON.stringify(orders)); } catch (e) {}
-  }, [orders]);
-
-  useEffect(() => {
     try { localStorage.setItem("horong_cart", JSON.stringify(cartItems)); } catch (e) {}
   }, [cartItems]);
 
+  // Firestore Subscriptions
   useEffect(() => {
-    try { localStorage.setItem("horong_classes", JSON.stringify(classes)); } catch (e) {}
-  }, [classes]);
+    // Initialize defaults if empty
+    initializeDefaults(INITIAL_PRODUCTS, INITIAL_CLASSES, INITIAL_RESERVATIONS, INITIAL_ORDERS);
+
+    const unsubProducts = onSnapshot(productsCollection, (snapshot) => {
+      const p: Product[] = [];
+      snapshot.forEach(doc => p.push(doc.data() as Product));
+      setProducts(p);
+    });
+
+    const unsubClasses = onSnapshot(classesCollection, (snapshot) => {
+      const c: CraftClass[] = [];
+      snapshot.forEach(doc => c.push(doc.data() as CraftClass));
+      setClasses(c);
+    });
+
+    const unsubReservations = onSnapshot(reservationsCollection, (snapshot) => {
+      const r: Reservation[] = [];
+      snapshot.forEach(doc => r.push(doc.data() as Reservation));
+      setReservations(r);
+    });
+
+    const unsubOrders = onSnapshot(ordersCollection, (snapshot) => {
+      const o: Order[] = [];
+      snapshot.forEach(doc => o.push(doc.data() as Order));
+      setOrders(o);
+    });
+
+    const unsubSettings = onSnapshot(doc(settingsCollection, "monthlyTitle"), (doc) => {
+      if (doc.exists()) {
+        setMonthlyItemsTitle(doc.data().value);
+      }
+    });
+
+    return () => {
+      unsubProducts();
+      unsubClasses();
+      unsubReservations();
+      unsubOrders();
+      unsubSettings();
+    };
+  }, []);
 
   // ACTIONS: Multi-view triggers
   const getFabricLabel = (fabric: string) => {
@@ -252,111 +245,83 @@ export default function App() {
   };
 
   // Class Reservation triggers
-  const handleAddReservation = (newRes: Reservation) => {
-    setReservations((prev) => [newRes, ...prev]);
+  const handleAddReservation = async (newRes: Reservation) => {
+    await setDoc(doc(reservationsCollection, newRes.id), newRes);
   };
 
-  const handleUpdateReservationStatus = (id: string, status: Reservation["status"]) => {
-    setReservations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
-    );
+  const handleUpdateReservationStatus = async (id: string, status: Reservation["status"]) => {
+    await updateDoc(doc(reservationsCollection, id), { status });
   };
 
   // Product Orders triggers
-  const handleAddOrder = (newOrder: Order) => {
-    setOrders((prev) => [newOrder, ...prev]);
+  const handleAddOrder = async (newOrder: Order) => {
+    await setDoc(doc(ordersCollection, newOrder.id), newOrder);
+    
     // Deduct stock of corresponding products
-    setProducts((prevProds) => {
-      return prevProds.map((prod) => {
-        const orderedItem = newOrder.items.find((item) => item.productId === prod.id);
-        if (orderedItem) {
-          return {
-            ...prod,
-            stock: Math.max(0, prod.stock - orderedItem.quantity),
-          };
-        }
-        return prod;
-      });
+    newOrder.items.forEach(async (item) => {
+      const prod = products.find(p => p.id === item.productId);
+      if (prod) {
+        await updateDoc(doc(productsCollection, prod.id), { 
+          stock: Math.max(0, prod.stock - item.quantity) 
+        });
+      }
     });
   };
 
-  const handleUpdateOrderStatus = (id: string, status: Order["status"]) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status } : o))
-    );
+  const handleUpdateOrderStatus = async (id: string, status: Order["status"]) => {
+    await updateDoc(doc(ordersCollection, id), { status });
   };
 
   // Product Stock tuning (Back-office)
-  const handleUpdateProductStock = (id: string, stock: number, price?: number) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, stock, basePrice: price !== undefined ? price : p.basePrice }
-          : p
-      )
-    );
+  const handleUpdateProductStock = async (id: string, stock: number, price?: number) => {
+    const data: any = { stock };
+    if (price !== undefined) data.basePrice = price;
+    await updateDoc(doc(productsCollection, id), data);
   };
 
-  const handleUpdateProductDetails = (id: string, nameKo: string, nameEn: string, descKo?: string, descEn?: string) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { 
-              ...p, 
-              name: { ...p.name, ko: nameKo, en: nameEn },
-              description: { 
-                ...p.description, 
-                ko: descKo !== undefined ? descKo : p.description.ko,
-                en: descEn !== undefined ? descEn : p.description.en 
-              }
-            }
-          : p
-      )
-    );
+  const handleUpdateProductDetails = async (id: string, nameKo: string, nameEn: string, descKo?: string, descEn?: string) => {
+    const prod = products.find(p => p.id === id);
+    if (!prod) return;
+    await updateDoc(doc(productsCollection, id), {
+      name: { ko: nameKo, en: nameEn },
+      description: { 
+        ko: descKo !== undefined ? descKo : prod.description.ko,
+        en: descEn !== undefined ? descEn : prod.description.en 
+      }
+    });
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleDeleteProduct = async (id: string) => {
+    await deleteDoc(doc(productsCollection, id));
   };
 
-  const handlePublishNewProduct = (newProd: Product) => {
-    setProducts((prev) => [newProd, ...prev]);
+  const handlePublishNewProduct = async (newProd: Product) => {
+    await setDoc(doc(productsCollection, newProd.id), newProd);
   };
 
-  const handleUpdateProductImage = (id: string, image: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, image } : p))
-    );
+  const handleUpdateProductImage = async (id: string, image: string) => {
+    await updateDoc(doc(productsCollection, id), { image });
   };
 
-  const handleToggleProductSoldOut = (id: string, isSoldOut: boolean) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isSoldOut } : p))
-    );
+  const handleToggleProductSoldOut = async (id: string, isSoldOut: boolean) => {
+    await updateDoc(doc(productsCollection, id), { isSoldOut });
   };
 
-  const handleUpdateClassDetails = (id: string, titleKo: string, titleEn: string, descriptionKo: string, descriptionEn: string) => {
-    setClasses((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              title: { ...c.title, ko: titleKo, en: titleEn },
-              description: { ...c.description, ko: descriptionKo, en: descriptionEn },
-            }
-          : c
-      )
-    );
+  const handleUpdateClassDetails = async (id: string, titleKo: string, titleEn: string, descriptionKo: string, descriptionEn: string) => {
+    const c = classes.find(c => c.id === id);
+    if (!c) return;
+    await updateDoc(doc(classesCollection, id), {
+      title: { ko: titleKo, en: titleEn },
+      description: { ko: descriptionKo, en: descriptionEn }
+    });
   };
 
-  const handleDeleteClass = (id: string) => {
-    setClasses((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteClass = async (id: string) => {
+    await deleteDoc(doc(classesCollection, id));
   };
 
-  const handleUpdateClassImage = (id: string, image: string) => {
-    setClasses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, image } : c))
-    );
+  const handleUpdateClassImage = async (id: string, image: string) => {
+    await updateDoc(doc(classesCollection, id), { image });
   };
 
   return (
