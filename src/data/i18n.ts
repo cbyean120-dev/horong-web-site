@@ -4,6 +4,7 @@ export interface TranslationDictionary {
   brandName: string;
   brandSub: string;
   tabHome: string;
+  tabBrandStory: string;
   tabShop: string;
   tabClass: string;
   tabAdmin: string;
@@ -92,7 +93,8 @@ export const i18nDictionary: Record<Language, TranslationDictionary> = {
   ko: {
     brandName: "호롱잡화점",
     brandSub: "국내 유일 100% 한복 업사이클링 수제 공방",
-    tabHome: "브랜드 스토리",
+    tabHome: "홈",
+    tabBrandStory: "브랜드 스토리",
     tabShop: "제품",
     tabClass: "클래스 신청",
     tabAdmin: "관리자 (Staff Only)",
@@ -177,7 +179,8 @@ export const i18nDictionary: Record<Language, TranslationDictionary> = {
   en: {
     brandName: "Horong Store",
     brandSub: "South Korea's Only 100% Upcycled Hanbok Artisan Workshop",
-    tabHome: "Our Story",
+    tabHome: "Home",
+    tabBrandStory: "Brand Story",
     tabShop: "Products",
     tabClass: "One-Day Class",
     tabAdmin: "Staff Console",

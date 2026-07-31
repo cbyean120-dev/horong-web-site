@@ -30,6 +30,7 @@ import AdminConsole from "./components/AdminConsole";
 import DocsCenter from "./components/DocsCenter";
 import AuthModal from "./components/AuthModal";
 import BrandLogo from "./components/BrandLogo";
+import BrandStory from "./components/BrandStory";
 
 import { 
   Heart, 
@@ -63,7 +64,7 @@ export default function App() {
   const t = i18nDictionary[lang];
 
   // 2. Active Tab View
-  const [activeTab, setActiveTab] = useState<"home" | "shop" | "class" | "admin" | "docs">("home");
+  const [activeTab, setActiveTab] = useState<"home" | "brand_story" | "shop" | "class" | "admin" | "docs">("home");
 
   // 3. User Login SSO Simulated State
   const [user, setUser] = useState<{ loggedIn: boolean; nickname: string; email: string; provider: string } | null>(() => {
@@ -349,7 +350,12 @@ export default function App() {
       {/* 2. Main content router depending on activeTab */}
       <main className="flex-1 flex flex-col">
         
-        {/* VIEW A: BRAND STORY (HOME) */}
+        {/* VIEW A.1: BRAND STORY */}
+        {activeTab === "brand_story" && (
+          <BrandStory lang={lang} />
+        )}
+
+        {/* VIEW A: HOME */}
         {activeTab === "home" && (
           <div className="flex flex-col mb-auto w-full">
             

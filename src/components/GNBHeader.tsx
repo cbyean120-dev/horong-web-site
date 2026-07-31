@@ -16,8 +16,8 @@ import {
 interface GNBHeaderProps {
   lang: Language;
   setLang: (lang: Language) => void;
-  activeTab: "home" | "shop" | "class" | "admin" | "docs";
-  setActiveTab: Dispatch<SetStateAction<"home" | "shop" | "class" | "admin" | "docs">>;
+  activeTab: "home" | "brand_story" | "shop" | "class" | "admin" | "docs";
+  setActiveTab: Dispatch<SetStateAction<"home" | "brand_story" | "shop" | "class" | "admin" | "docs">>;
   cartCount: number;
   user: { loggedIn: boolean; nickname: string; email: string; provider: string } | null;
   onLogout: () => void;
@@ -55,6 +55,7 @@ export default function GNBHeader({
           <nav className="hidden lg:flex items-center gap-6 justify-start">
             {[
               { id: "home", label: t.tabHome },
+              { id: "brand_story", label: t.tabBrandStory },
               { id: "shop", label: t.tabShop },
               { id: "class", label: t.tabClass },
               ...(isAdmin ? [
@@ -150,6 +151,7 @@ export default function GNBHeader({
                 className="text-[10px] font-sans uppercase bg-stone-100 text-stone-800 rounded px-2 py-1 border-none focus:outline-hidden"
               >
                 <option value="home">{t.tabHome}</option>
+                <option value="brand_story">{t.tabBrandStory}</option>
                 <option value="shop">{t.tabShop}</option>
                 <option value="class">{t.tabClass}</option>
                 {isAdmin && (
