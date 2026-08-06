@@ -197,7 +197,7 @@ export default function ProductBespoke({
           <div className="bg-white max-w-2xl w-full rounded-3xl border border-stone-100 shadow-xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
             
             {/* Visual Cover in panel (md:w-5/12) */}
-            <div className="md:w-5/12 bg-stone-100 relative max-h-[240px] md:max-h-full">
+            <div className="w-full md:w-5/12 bg-stone-100 relative shrink-0 h-[240px] md:h-auto">
               <img 
                 src={activeBespokeProduct.image} 
                 alt={activeBespokeProduct.name[lang]} 
@@ -215,7 +215,7 @@ export default function ProductBespoke({
             </div>
 
             {/* Product details workspace (md:w-7/12) */}
-            <div className="md:w-7/12 p-6 flex flex-col justify-between overflow-y-auto">
+            <div className="w-full md:w-7/12 p-5 md:p-6 flex flex-col overflow-y-auto flex-1 min-h-0">
               
               {/* Header inside modal */}
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
@@ -249,7 +249,7 @@ export default function ProductBespoke({
               </div>
 
               {/* Add action */}
-              <div className="pt-4 border-t border-stone-100 flex gap-3">
+              <div className="mt-auto pt-4 border-t border-stone-100 flex gap-3">
                 <a
                   href="https://smartstore.naver.com/mivvvne"
                   target="_blank"
